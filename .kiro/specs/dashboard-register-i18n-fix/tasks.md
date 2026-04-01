@@ -1,0 +1,96 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Bug Condition** - Hardcoded English Strings Rendered for Non-English Languages
+  - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior — it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bug exists in `UserDashboard.js` and `Register.js`
+  - **Scoped PBT Approach**: Scope the property to the concrete failing cases — `lang='am'` and `lang='or'` — to ensure reproducibility
+  - Render `UserDashboard` wrapped in a `LangProvider` with `lang` forced to `'am'`; assert heading text equals `translations['am'].myDashboardTitle` ("የእኔ ዳሽቦርድ") — will find "My Dashboard" instead
+  - Render `UserDashboard` with `lang='or'`; assert Sign Out button text equals `translations['or'].signOut` ("Ba'i") — will find "Sign Out" instead
+  - Render `Register` with `lang='am'`; assert step 0 indicator label equals `translations['am'].accountDetails` ("የመለያ ዝርዝሮች") — will find "Account" instead
+  - Render `Register` at step 2 with `lang='or'`; assert info note contains `translations['or'].licenseInfo` — will find English text instead
+  - The test assertions match the Expected Behavior Properties from design (Property 1 and Property 2)
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct — it proves the bug exists)
+  - Document counterexamples found: e.g., "UserDashboard renders 'My Dashboard' instead of 'የእኔ ዳሽቦርድ' when lang='am'"
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - English Rendering and Functional Behavior Unchanged
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe: render `UserDashboard` with `lang='en'` on unfixed code — record all rendered strings (title, tab labels, button text, section headings, field labels)
+  - Observe: render `Register` with `lang='en'` on unfixed code — record step labels, section headings, field labels, button text, info note
+  - Observe: submit incomplete Register form with `lang='am'` on unfixed code — record validation error messages (these already use `t.*` so they should be translated)
+  - Write property-based test: for all `lang` in `['en', 'am', 'or']`, `Register` form validation fires the same errors (required fields, password mismatch, password length, company required, license required)
+  - Write property-based test: for `lang='en'`, all strings in `UserDashboard` and `Register` match current hardcoded English values exactly
+  - Write property-based test: for any `lang`, the city selector and business-type selector in `Register` continue to use `CITY_TRANSLATIONS` and `BUSINESS_TYPE_GROUPS` with the active `lang`
+  - Write property-based test: for any `lang`, `UserDashboard` renders `profile.status` raw value unchanged
+  - Verify all tests PASS on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [x] 3. Fix i18n wiring for UserDashboard and Register
+
+  - [x] 3.1 Wire `useLang` into `UserDashboard.js` and replace all hardcoded strings
+    - Add `import { useLang } from '../LangContext';` at the top of `UserDashboard.js`
+    - Call `const { t } = useLang();` inside the component body, before the early return
+    - Replace `"Loading..."` → `t.loading` in the early return guard
+    - Replace `"My Dashboard"` → `t.myDashboardTitle`
+    - Replace `"Sign Out"` → `t.signOut`
+    - Replace `"Account Under Review"` → `t.underReview`
+    - Replace the review message string → `t.underReviewMsg`
+    - Replace tab labels array entries with `t.profileTab`, `t.businessTab`, `t.socialTab`, `t.passwordTab`
+    - Pass `label={saving ? t.saving : t.saveChanges}` to `SaveBtn` in profile, business, and social tabs (replacing the default prop)
+    - Pass `label={saving ? t.saving : t.changePassword}` to `SaveBtn` in the password tab
+    - Replace `"Current Password"` → `t.currentPassword`, `"New Password"` → `t.newPassword`, `"Confirm New Password"` → `t.confirmNewPassword`
+    - Replace `'Profile updated successfully.'` → `t.profileUpdated`
+    - Replace `'Password changed successfully.'` → `t.passwordChanged`
+    - Replace `'Passwords do not match.'` → `t.passwordMismatch`
+    - _Bug_Condition: isBugCondition(input) where input.lang IN ['am', 'or'] AND component = 'UserDashboard'_
+    - _Expected_Behavior: every visible string in UserDashboard equals translations[lang][key] for the active language_
+    - _Preservation: English rendering identical to current; API calls, navigation, status badge unchanged_
+    - _Requirements: 2.1, 3.1, 3.3, 3.5_
+
+  - [x] 3.2 Replace hardcoded strings in `Register.js`
+    - Remove the module-level `const STEPS = ['Account', 'Business Info', 'Documents'];` declaration
+    - Replace `STEPS` usage in the step indicator map with an inline array `[t.accountDetails, t.businessInfo, t.documents]`
+    - Replace section heading `"Account Details"` → `t.accountDetails`
+    - Replace section heading `"Business Information"` → `t.businessInfo`
+    - Replace section heading `"Business Documents"` → `t.businessDocsTitle`
+    - Replace field labels: `"Full Name *"` → `t.fullNameLabel`, `"Phone Number *"` → `t.phoneLabel2`, `"Email Address (optional)"` → `t.emailLabel`, `"Password *"` → `t.passwordPlaceholder`, `"Confirm Password *"` → `t.confirmPassword`, `"Min. 6 characters"` placeholder → `t.minPassword`
+    - Replace field labels: `"Company / Business Name *"` → `t.companyNameLabel`, `"Business Type"` → `t.businessTypeLabel2`, `"Location (City)"` → `t.locationLabel`, `"Website (optional)"` → `t.websiteLabel`
+    - Replace field labels: `"Business License Number *"` → `t.businessLicenseLabel`, `"TIN Number"` → `t.tinLabel`, `"E-LMIS Registration"` → `t.elmisLabel`
+    - Replace button text: `"Next: Business Info →"` → `t.nextBusiness`, `"Next: Documents →"` → `t.nextDocs`, `"← Back"` (both instances) → `t.back`
+    - Replace submit button: `{loading ? 'Creating Account...' : 'Create Account →'}` → `{loading ? t.creating : t.createAccount}`
+    - Replace step-2 description paragraph → `t.businessDocsDesc`
+    - Replace info note box content → `t.licenseInfo`
+    - Replace `'Registration failed.'` fallback → `t.registrationFailed`
+    - Replace `"Create your business account"` subtitle → `t.registerTitle`
+    - Replace `"Already have an account?"` → `t.alreadyHave`
+    - _Bug_Condition: isBugCondition(input) where input.lang IN ['am', 'or'] AND component = 'Register'_
+    - _Expected_Behavior: every visible string in Register equals translations[lang][key] for the active language_
+    - _Preservation: STEPS-derived labels update reactively on lang change; CITY_TRANSLATIONS and BUSINESS_TYPE_GROUPS selectors unchanged; validation logic unchanged_
+    - _Requirements: 2.2, 2.3, 3.1, 3.2, 3.4_
+
+  - [x] 3.3 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Translated Strings Rendered for Non-English Languages
+    - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
+    - The test from task 1 encodes the expected behavior (translated strings for `lang='am'` and `lang='or'`)
+    - When this test passes, it confirms the expected behavior is satisfied for both `UserDashboard` and `Register`
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [x] 3.4 Verify preservation tests still pass
+    - **Property 2: Preservation** - English Rendering and Functional Behavior Unchanged
+    - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions in English rendering, validation logic, selectors, and status badge)
+    - Confirm all tests still pass after fix (no regressions)
+
+- [x] 4. Checkpoint — Ensure all tests pass
+  - Ensure all tests pass; ask the user if questions arise.
