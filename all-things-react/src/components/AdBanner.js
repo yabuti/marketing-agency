@@ -1,70 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useLang } from '../LangContext';
+import API from '../api';
 
 export default function AdBanner() {
   const [banners, setBanners] = useState([]);
-  const [index, setIndex]     = useState(0);
-  const [sliding, setSliding] = useState(false);
+  const [index, setIndex] = useState(0);
+  const [fade, setFade] = useState(true);
   const { t } = useLang();
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/banners/current')
-      .then(r => r.json())
-      .then(data => { if (data.banners?.length) setBanners(data.banners); })
+    API.get('/banners/current')
+      .then(res => { if (res.data.banners?.length) setBanners(res.data.banners); })
       .catch(() => {});
   }, []);
 
-  const goTo = (i) => {
-    if (i === index) return;
-    setSliding(true);
-    setTimeout(() => { setIndex(i); setSliding(false); }, 400);
-  };
-
   useEffect(() => {
     if (banners.length <= 1) return;
-    const t = setInterval(() => {
-      setSliding(true);
+    const timer = setInterval(() => {
+      setFade(false);
       setTimeout(() => {
         setIndex(i => (i + 1) % banners.length);
-        setSliding(false);
+        setFade(true);
       }, 400);
     }, 4000);
-    return () => clearInterval(t);
+    return () => clearInterval(timer);
   }, [banners]);
 
   if (!banners.length) return null;
-  const current = banners[index];
+
+  const banner = banners[index];
 
   return (
-    <div style={{ position: 'relative', width: '100%', borderRadius: 16, overflow: 'hidden', background: '#111', height: 380 }}>
-      <img
-        key={current.url}
-        src={current.url}
-        alt=""
-        style={{
-          width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-          opacity: sliding ? 0 : 1,
-          transition: 'opacity 0.4s ease',
-          userSelect: 'none',
-        }}
-      />
-      {/* See More button - bottom left */}
-      <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
-        <Link to="/clients" style={{
-          display: 'inline-block', padding: '12px 32px',
-          background: '#f97316', color: '#000',
-          borderRadius: 24, fontWeight: 700, fontSize: 15,
-          textDecoration: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-          whiteSpace: 'nowrap',
-        }}>{t.seeMore}</Link>
-      </div>
-
+    <div style={{ width: '100%', borderRadius: 24, overflow: 'hidden', position: 'relative', background: 'var(--secondary)' }}>
+      {banner.url && (
+        <img
+          src={banner.url}
+          alt={banner.filename || 'Banner'}
+          style={{ width: '100%', height: 'auto', maxHeight: 500, aspectRatio: '16/7', objectFit: 'cover', display: 'block', opacity: fade ? 1 : 0, transition: 'opacity 0.4s ease' }}
+        />
+      )}
       {/* dots */}
       {banners.length > 1 && (
-        <div style={{ position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{ position: 'absolute', top: 16, right: 20, display: 'flex', gap: 6 }}>
           {banners.map((_, i) => (
-            <div key={i} onClick={() => goTo(i)} style={{
+            <div key={i} onClick={() => { setFade(false); setTimeout(() => { setIndex(i); setFade(true); }, 400); }} style={{
               width: i === index ? 22 : 8, height: 8, borderRadius: 4,
               background: i === index ? '#f97316' : 'rgba(255,255,255,0.5)',
               cursor: 'pointer', transition: 'width 0.3s',

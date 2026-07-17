@@ -9,6 +9,7 @@ const translations = {
     contact: 'Contact',
     login: 'Login',
     register: 'Register',
+    back: 'Back',
     
     // Home Page
     licensedOnly: 'Licensed Businesses Only',
@@ -154,6 +155,16 @@ const translations = {
     techNews: 'Technology News',
     latestTech: 'Latest Technology Updates from Ethiopia',
     readMore: 'Read More',
+    viewMore: 'View More',
+    
+    // Home Page extras
+    allPlatforms: 'All Platforms',
+    platformsWeMaster: 'Platforms We Master',
+    telegram: 'Telegram',
+    completeMarketingSolutions: 'Complete Marketing Solutions',
+    trustAndResults: 'Trust & Results',
+    numbersThatSpeak: 'Numbers That Speak',
+    platforms: 'Platforms',
     
     // Updated ESMEs
     esmes: 'ESMEs',
@@ -167,6 +178,7 @@ const translations = {
     contact: 'አግኙን',
     login: 'ግባ',
     register: 'ተመዝገብ',
+    back: 'ተመለስ',
     
     // Home Page
     licensedOnly: 'ፈቃድ ያላቸው ንግዶች ብቻ',
@@ -312,6 +324,16 @@ const translations = {
     techNews: 'የቴክኖሎጂ ዜና',
     latestTech: 'ከኢትዮጵያ የቅርብ ጊዜ የቴክኖሎጂ ዜናዎች',
     readMore: 'ተጨማሪ ያንብቡ',
+    viewMore: 'ተጨማሪ ይመልከቱ',
+    
+    // Home Page extras
+    allPlatforms: 'ሁሉም መድረኮች',
+    platformsWeMaster: 'የምንከسلطንባቸው መድረኮች',
+    telegram: 'ቴሌግራም',
+    completeMarketingSolutions: 'ሙሉ የማርኬቲንግ መፍትሄዎች',
+    trustAndResults: 'እምነት እና ውጤቶች',
+    numbersThatSpeak: 'የሚነግሩን ቁጥሮች',
+    platforms: 'መድረኮች',
     
     // Updated ESMEs
     esmes: 'ኢኤስኤምኢዎች',
@@ -325,6 +347,7 @@ const translations = {
     contact: 'Nu Qunnamaa',
     login: 'Seeni',
     register: 'Galmaaʼi',
+    back: "Deebi'i",
     
     // Home Page
     licensedOnly: 'Daldala Hayyama Qaban Qofa',
@@ -470,6 +493,16 @@ const translations = {
     techNews: 'Oduu Teeknooloojii',
     latestTech: 'Oduu Teeknooloojii Haaraa Itoophiyaa Keessaa',
     readMore: 'Dabalataan Dubbisaa',
+    viewMore: 'Dabalataan Ilaali',
+    
+    // Home Page extras
+    allPlatforms: 'Marsaalee Hunda',
+    platformsWeMaster: 'Marsaalee Quubne',
+    telegram: 'Telegraamii',
+    completeMarketingSolutions: 'Furmaata Maarketiingii Guutuu',
+    trustAndResults: 'Amanamummaa fi Bu\'aa',
+    numbersThatSpeak: 'Lakkoofsonni Himu',
+    platforms: 'Marsaalee',
     
     // Updated ESMEs
     esmes: 'IIESMIiwwan',

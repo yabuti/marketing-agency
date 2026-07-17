@@ -58,7 +58,7 @@
 
 .clients-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
   gap: 2rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -219,9 +219,25 @@
 
 /* Small Mobile */
 @media (max-width: 480px) {
-  .clients-hero { padding: 30px 3% 20px; }
-  .clients-section { padding: 20px 3% 40px; }
-  .cta-section { padding: 40px 3%; }
-  .client-header { flex-direction: column; text-align: center; gap: 1rem; }
-  .client-stats { justify-content: center; }
+  .clients-hero { padding: 20px 3% 15px; }
+  .clients-hero h1 { font-size: 1.5rem; }
+  .clients-section { padding: 15px 3% 40px; }
+  .cta-section { padding: 30px 3%; }
+  .cta-section h2 { font-size: 1.5rem; }
+  .cta-section p { font-size: 0.9rem; }
+  .client-card { border-radius: 12px; }
+  .client-header { padding: 1rem 1.25rem; }
+  .client-body { padding: 1rem 1.25rem; }
+  .client-logo { width: 48px; height: 48px; font-size: 1.3rem; border-radius: 12px; }
+  .client-title h3 { font-size: 1rem; }
+  .client-title p { font-size: 0.75rem; }
+  .client-header { flex-direction: column; text-align: center; gap: 0.75rem; }
+  .client-body > p { font-size: 0.85rem; }
+  .client-stats { justify-content: center; gap: 0.75rem; }
+  .stat-value { font-size: 1rem; }
+  .stat-name { font-size: 0.65rem; }
+  .verification-banner { padding: 1rem; border-radius: 12px; }
+  .verification-banner .icon { width: 40px; height: 40px; font-size: 1.2rem; }
+  .verification-banner .text h3 { font-size: 0.95rem; }
+  .verification-banner .text p { font-size: 0.8rem; }
 }

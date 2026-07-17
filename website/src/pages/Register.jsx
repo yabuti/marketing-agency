@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 import '../styles/auth.css'
 
@@ -7,6 +7,7 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', password_confirmation: '' })
   const [info, setInfo] = useState('')
   const { t } = useLanguage()
+  const navigate = useNavigate()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -16,6 +17,7 @@ export default function Register() {
   return (
     <section className="auth-section">
       <div className="auth-card">
+        <Link to="/" className="auth-back-link">← {t('back')}</Link>
         <div className="auth-header">
           <h1>{t('createAccount').split(' ')[0]} <span>{t('createAccount').split(' ')[1] || 'Account'}</span></h1>
           <p>{t('registerToContact')}</p>
