@@ -36,7 +36,7 @@ export default function AdBanner() {
         <img
           src={banner.url}
           alt={banner.filename || 'Banner'}
-          style={{ width: '100%', height: 'auto', maxHeight: 500, aspectRatio: '16/7', objectFit: 'cover', display: 'block', opacity: fade ? 1 : 0, transition: 'opacity 0.4s ease' }}
+          style={{ width: '100%', height: 'auto', maxHeight: 500, objectFit: 'contain', display: 'block', opacity: fade ? 1 : 0, transition: 'opacity 0.4s ease' }}
         />
       )}
       {/* dots */}

@@ -131,7 +131,7 @@ const or = {
   faq5q: 'Geejjibni akkamitti hojjeta?',
   faq5a: 'Geejjibni bitaan booda gurgurtaa waliin sirriin ta\'uun sirreessa. Gurgurtoonni boqonnaa Finfinnee keessatti geejjiba kennu. Tajaajila chaa fi keenyaan gurgurtaa kee waliin geejjiba haala irra waliin yaadadhu.',
   faq6q: 'Keenyuma deebisuun jira?',
-  faq6a: 'Keenyumni kee fi gurgurtaa gidduu hojjeta. Bitaa dura keenyuma gurgurtaa fuula keenya irraan fuula fuulaan erguu isin建议.',
+  faq6a: 'Keenyumni kee fi gurgurtaa gidduu hojjeta. Bitaa dura keenyuma gurgurtaa fuula keenya irraan fuula fuulaan erguu isin barbaachisa jedhu.',
   faq7q: 'Akka maamilaa maarketiingii dijitaalaa maaliif ta\'a?',
   faq7a: 'Fuula Quunnamaa yk allthingsethiopia2026@gmail.com irraan nu quunnamaa. Daldala barbaachisee keessan waliin yaadna fi karoorta tooftaa maarketiingii uumna.',
   faq8q: 'All Things tajaajila maala kenna?',

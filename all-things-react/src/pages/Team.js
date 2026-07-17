@@ -19,11 +19,11 @@ const DEPT_ICONS = {
 };
 
 const DEPT_IMAGES = {
-  'Executive Management': '/images/executive managment team.jpg',
-  'Creative & Digital Marketing': '/images/creative&digital marketing team.jpg',
-  'Technology & Platform Support': '/images/technology&platform support.jpg',
-  'Finance & Administration': '/images/finance&administration.jpg',
-  'Customer & Sales': '/images/customer&sales.jpg',
+  'Executive Management': '/images/executive-management-team.jpg',
+  'Creative & Digital Marketing': '/images/creative-digital-marketing-team.jpg',
+  'Technology & Platform Support': '/images/technology-platform-support.jpg',
+  'Finance & Administration': '/images/finance-administration.jpg',
+  'Customer & Sales': '/images/customer-sales.jpg',
 };
 
 export default function Team() {
@@ -47,7 +47,8 @@ export default function Team() {
   const depts = DEPT_ORDER.filter(d => grouped[d]);
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(16px, 3vw, 28px) clamp(14px, 4vw, 24px)' }}>
+    <div className="page" style={{ paddingTop: 140 }}>
+      <div className="hero-gradient" style={{ height: '40vh' }} />
       {/* Profile Modal */}
       {selectedMember && (
         <div
@@ -63,7 +64,7 @@ export default function Team() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: '#fff',
+              background: 'var(--bg-main)',
               borderRadius: 28,
               padding: 40,
               maxWidth: 480,
@@ -201,8 +202,8 @@ function MemberCard({ member, onViewProfile }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#fff',
-        border: `2px solid ${hovered ? 'rgba(255,122,0,0.3)' : 'rgba(30,41,59,0.15)'}`,
+        background: 'var(--bg-subtle)',
+        border: `2px solid ${hovered ? 'rgba(255,122,0,0.3)' : 'rgba(30,41,59,0.1)'}`,
         borderRadius: 40,
         padding: '28px 24px 24px',
         paddingTop: 72,
@@ -221,7 +222,7 @@ function MemberCard({ member, onViewProfile }) {
         width: 100, height: 100, borderRadius: '50%',
         overflow: 'hidden',
         background: 'var(--bg-subtle)',
-        border: '6px solid #fff',
+        border: '6px solid var(--bg-subtle)',
         boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>

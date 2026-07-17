@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import { useLang } from '../LangContext';
@@ -9,10 +9,12 @@ export default function UserDashboard() {
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({});
   const [tab, setTab] = useState('profile');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
+  const dropdownRef = useRef(null);
 
   // Bazaar - My Store state
   const [storeProducts, setStoreProducts] = useState([]);
@@ -30,6 +32,14 @@ export default function UserDashboard() {
   // Bazaar - My Purchases (customer) state
   const [purchases, setPurchases] = useState([]);
   const [purchasesLoading, setPurchasesLoading] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('userToken');
@@ -138,7 +148,6 @@ export default function UserDashboard() {
       }
       setShowProductForm(false);
       setEditingProduct(null);
-      // Reload products
       const r = await API.get('/bazaar/products', { params: { seller_id: profile.id } });
       setStoreProducts(r.data || []);
     } catch (err) {
@@ -176,20 +185,41 @@ export default function UserDashboard() {
     }
   };
 
-  if (!profile) return <div style={{ textAlign: 'center', padding: 80, color: '#ffffff' }}>{t.loading}</div>;
+  if (!profile) return <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>{t.loading}</div>;
 
   const statusColor = { pending: '#f97316', active: '#22c55e', suspended: '#ef4444' };
 
+  const allTabs = [
+    { key: 'profile', label: t.profileTab, icon: '👤' },
+    { key: 'business', label: t.businessTab, icon: '🏢' },
+    { key: 'social', label: t.socialTab, icon: '📱' },
+    { key: 'password', label: t.passwordTab, icon: '🔒' },
+    ...(profile.status === 'active' ? [
+      { key: 'store', label: t.myStoreTab, icon: '🛍️' },
+      { key: 'orders', label: t.myOrdersTab, icon: '📦' },
+    ] : []),
+    { key: 'purchases', label: t.myPurchasesTab, icon: '🛒' },
+  ];
+
+  const currentTab = allTabs.find(t2 => t2.key === tab);
+
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+    <div className="page" style={{ paddingTop: 140, maxWidth: 800, margin: '0 auto' }}>
+      <div className="hero-gradient" style={{ height: '30vh' }} />
+
+      {/* Header with username and logout */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--primary)', padding: 0 }}>←</button>
           <div>
-              <h1 style={{ fontSize: 26, fontWeight: 900 }}>{t.myDashboardTitle}</h1>
+            <h1 style={{ fontSize: 'clamp(22px, 3.5vw, 30px)', fontWeight: 900 }}>{t.myDashboardTitle}</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
-              <span style={{ color: '#ffffff', fontSize: 16 }}>{profile.company_name || profile.full_name}</span>
+              <span
+                onClick={() => navigate('/dashboard')}
+                style={{ color: 'var(--secondary)', fontSize: 16, fontWeight: 700, cursor: 'pointer', borderBottom: '2px solid var(--primary)', paddingBottom: 2 }}
+              >
+                {profile.company_name || profile.full_name}
+              </span>
               <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20,
                 background: `${statusColor[profile.status]}20`, color: statusColor[profile.status], fontWeight: 600 }}>
                 {profile.status}
@@ -197,57 +227,103 @@ export default function UserDashboard() {
             </div>
           </div>
         </div>
-        <button onClick={logout} style={{ padding: '9px 18px', background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', borderRadius: 8, fontSize: 16, cursor: 'pointer' }}>
-          {t.signOut}
-        </button>
+
+        {/* Right side: username clickable + logout */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span
+            onClick={() => navigate('/dashboard')}
+            style={{
+              color: 'var(--text-muted)', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 12px', borderRadius: 8, transition: 'all 0.2s',
+            }}
+          >
+            <span style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14 }}>
+              {(profile.full_name || 'U').charAt(0).toUpperCase()}
+            </span>
+            {profile.full_name}
+          </span>
+          <button onClick={logout} style={{ padding: '8px 16px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            {t.signOut}
+          </button>
+        </div>
       </div>
 
       {profile.status === 'pending' && (
-        <div style={{ background: '#f9731615', border: '1px solid #f9731640', borderRadius: 12, padding: 16, marginBottom: 24, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)', borderRadius: 12, padding: 16, marginBottom: 24, display: 'flex', gap: 12, alignItems: 'center' }}>
           <span style={{ fontSize: 24 }}>⏳</span>
           <div>
-            <div style={{ color: '#f97316', fontWeight: 600 }}>{t.underReview}</div>
-            <div style={{ color: '#ffffff', fontSize: 15, marginTop: 2 }}>{t.underReviewMsg}</div>
+            <div style={{ color: 'var(--primary)', fontWeight: 600 }}>{t.underReview}</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 15, marginTop: 2 }}>{t.underReviewMsg}</div>
           </div>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="dashboard-tabs" style={{ display: 'flex', gap: 4, marginBottom: 24, background: '#111', borderRadius: 10, padding: 4 }}>
-        {(() => {
-          const baseTabs = [['profile', t.profileTab], ['business', t.businessTab], ['social', t.socialTab], ['password', t.passwordTab]];
-          const bazaarTabs = profile.status === 'active' ? [['store', t.myStoreTab], ['orders', t.myOrdersTab]] : [];
-          const purchasesTabs = [['purchases', t.myPurchasesTab]];
-          const allTabs = [...baseTabs, ...bazaarTabs, ...purchasesTabs];
-          return allTabs.map(([key, label]) => (
-            <button key={key} onClick={() => { setTab(key); setSuccess(''); setError(''); }}
-              style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: 'none', fontSize: 15, cursor: 'pointer',
-                background: tab === key ? '#f97316' : 'transparent', color: tab === key ? '#000' : '#ffffff', fontWeight: tab === key ? 700 : 400 }}>
-              {label}
-            </button>
-          ));
-        })()}
+      {/* Dropdown tab navigation */}
+      <div ref={dropdownRef} style={{ marginBottom: 24, position: 'relative', zIndex: 99 }}>
+        <button
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          style={{
+            width: '100%', padding: '14px 20px',
+            background: 'var(--bg-subtle)', border: '2px solid rgba(255,122,0,0.15)',
+            borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            cursor: 'pointer', transition: 'all 0.2s',
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 16, fontWeight: 700, color: 'var(--secondary)' }}>
+            <span style={{ fontSize: 20 }}>{currentTab?.icon}</span>
+            {currentTab?.label}
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', transition: 'transform 0.2s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+        </button>
+
+        {dropdownOpen && (
+          <div style={{
+            position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
+            background: '#fff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12,
+            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', overflow: 'hidden', zIndex: 100,
+          }}>
+            {allTabs.map(t2 => (
+              <button
+                key={t2.key}
+                onClick={() => { setTab(t2.key); setDropdownOpen(false); setSuccess(''); setError(''); }}
+                style={{
+                  width: '100%', padding: '12px 20px',
+                  background: tab === t2.key ? 'rgba(255,122,0,0.08)' : 'transparent',
+                  border: 'none', display: 'flex', alignItems: 'center', gap: 10,
+                  fontSize: 15, fontWeight: tab === t2.key ? 700 : 500,
+                  color: tab === t2.key ? 'var(--primary)' : 'var(--text-muted)',
+                  cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                }}
+              >
+                <span style={{ fontSize: 18 }}>{t2.icon}</span>
+                {t2.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {(success || error) && (
-        <div style={{ padding: '12px 16px', borderRadius: 10, marginBottom: 20, fontSize: 16,
-          background: success ? '#22c55e20' : '#ef444420', border: `1px solid ${success ? '#22c55e40' : '#ef444440'}`,
-          color: success ? '#22c55e' : '#ef4444' }}>
+        <div style={{ padding: '12px 16px', borderRadius: 10, marginBottom: 20, fontSize: 15,
+          background: success ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+          border: `1px solid ${success ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'}`,
+          color: success ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
           {success || error}
         </div>
       )}
 
-      <div style={{ background: '#171717', border: '1px solid #262626', borderRadius: 16, padding: 28 }}>
+      <div style={{ background: 'var(--bg-subtle)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16, padding: 28, position: 'relative', zIndex: 1 }}>
         {tab === 'profile' && (
           <form onSubmit={saveProfile}>
-            <h3 style={{ color: '#f97316', fontSize: 15, marginBottom: 20 }}>{t.personalInformation}</h3>
+            <h3 style={{ color: 'var(--primary)', fontSize: 15, marginBottom: 20 }}>{t.personalInformation}</h3>
             <Field label={t.fullNameLabel} name="full_name" value={form.full_name || ''} onChange={set} />
             <Field label={t.emailLabel} name="email" type="email" value={form.email || ''} onChange={set} />
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>{t.phoneLabel2}</label>
-              <div style={{ display: 'flex', alignItems: 'center', background: '#0a0a0a', border: '1px solid #333', borderRadius: 8, overflow: 'hidden' }}>
-                <span style={{ padding: '11px 12px', color: '#f97316', fontWeight: 700, fontSize: 16, borderRight: '1px solid #333' }}>+251</span>
-                <input type="tel" name="phone" value={(form.phone || '').replace('+251', '')} onChange={set} maxLength={9} placeholder="9XX XXX XXX" style={{ flex: 1, padding: '11px 12px', background: 'transparent', border: 'none', color: '#fff', fontSize: 16, outline: 'none' }} />
+              <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 8, overflow: 'hidden' }}>
+                <span style={{ padding: '11px 12px', color: 'var(--primary)', fontWeight: 700, fontSize: 16, borderRight: '1px solid rgba(0,0,0,0.08)' }}>+251</span>
+                <input type="tel" name="phone" value={(form.phone || '').replace('+251', '')} onChange={set} maxLength={9} placeholder="9XX XXX XXX" style={{ flex: 1, padding: '11px 12px', background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: 16, outline: 'none' }} />
               </div>
             </div>
             <SaveBtn saving={saving} label={saving ? t.saving : t.saveChanges} />
@@ -256,7 +332,7 @@ export default function UserDashboard() {
 
         {tab === 'business' && (
           <form onSubmit={saveProfile}>
-            <h3 style={{ color: '#f97316', fontSize: 15, marginBottom: 20 }}>{t.businessInformation}</h3>
+            <h3 style={{ color: 'var(--primary)', fontSize: 15, marginBottom: 20 }}>{t.businessInformation}</h3>
             <Field label={t.companyNameLabel} name="company_name" value={form.company_name || ''} onChange={set} />
             <Field label={t.businessTypeLabel2} name="business_type" value={form.business_type || ''} onChange={set} />
             <Field label={t.locationLabel} name="location" value={form.location || ''} onChange={set} />
@@ -272,7 +348,7 @@ export default function UserDashboard() {
 
         {tab === 'social' && (
           <form onSubmit={saveProfile}>
-            <h3 style={{ color: '#f97316', fontSize: 15, marginBottom: 20 }}>{t.socialMediaExtra}</h3>
+            <h3 style={{ color: 'var(--primary)', fontSize: 15, marginBottom: 20 }}>{t.socialMediaExtra}</h3>
             <Field label={t.instagramHandle} name="instagram" value={form.instagram || ''} onChange={set} placeholder="@yourbusiness" />
             <Field label={t.tiktokHandle} name="tiktok" value={form.tiktok || ''} onChange={set} placeholder="@yourbusiness" />
             <Field label={t.telegramLabel} name="telegram" value={form.telegram || ''} onChange={set} placeholder="@yourbusiness" />
@@ -293,7 +369,7 @@ export default function UserDashboard() {
 
         {tab === 'password' && (
           <form onSubmit={changePassword}>
-            <h3 style={{ color: '#f97316', fontSize: 15, marginBottom: 20 }}>{t.changePassword}</h3>
+            <h3 style={{ color: 'var(--primary)', fontSize: 15, marginBottom: 20 }}>{t.changePassword}</h3>
             <Field label={t.currentPassword} name="currentPassword" type="password" value={pwForm.currentPassword} onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })} />
             <Field label={t.newPassword} name="newPassword" type="password" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })} placeholder={t.minPassword} />
             <Field label={t.confirmNewPassword} name="confirm" type="password" value={pwForm.confirm} onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })} />
@@ -304,17 +380,16 @@ export default function UserDashboard() {
         {tab === 'store' && profile.status === 'active' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ color: '#f97316', fontSize: 15, margin: 0 }}>{t.myStoreTab}</h3>
+              <h3 style={{ color: 'var(--primary)', fontSize: 15, margin: 0 }}>{t.myStoreTab}</h3>
               <button onClick={() => { setShowProductForm(true); setEditingProduct(null); setProductForm({ name: '', description: '', price: '', category: '', stock_quantity: '' }); setProductFormError(''); }}
-                style={{ padding: '8px 16px', background: '#f97316', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+                style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
                 + {t.addProduct}
               </button>
             </div>
 
-            {/* Product form (add/edit) */}
             {showProductForm && (
-              <div style={{ background: '#0a0a0a', border: '1px solid #333', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-                <h4 style={{ color: '#fff', marginTop: 0, marginBottom: 16 }}>{editingProduct ? t.editProduct : t.addProduct}</h4>
+              <div style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+                <h4 style={{ color: 'var(--secondary)', marginTop: 0, marginBottom: 16 }}>{editingProduct ? t.editProduct : t.addProduct}</h4>
                 <Field label={t.productName} name="name" value={productForm.name} onChange={e => setProductForm(p => ({ ...p, name: e.target.value }))} />
                 <div style={{ marginBottom: 16 }}>
                   <label style={labelStyle}>{t.productDescription}</label>
@@ -326,40 +401,39 @@ export default function UserDashboard() {
                 {productFormError && <p style={{ color: '#ef4444', fontSize: 15, marginBottom: 12 }}>{productFormError}</p>}
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={handleSaveProduct} disabled={productSaving}
-                    style={{ padding: '10px 20px', background: '#f97316', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
+                    style={{ padding: '10px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
                     {productSaving ? t.saving : t.saveChanges}
                   </button>
                   <button onClick={() => setShowProductForm(false)}
-                    style={{ padding: '10px 20px', background: 'transparent', color: '#ffffff', border: '1px solid #333', borderRadius: 8, fontSize: 16, cursor: 'pointer' }}>
+                    style={{ padding: '10px 20px', background: 'transparent', color: 'var(--text-muted)', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}>
                     {t.back}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Product list */}
-            {storeLoading ? <p style={{ color: '#ffffff' }}>{t.loading}</p> : (
+            {storeLoading ? <p style={{ color: 'var(--text-muted)' }}>{t.loading}</p> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {storeProducts.length === 0 && <p style={{ color: '#ffffff' }}>{t.noResults}</p>}
+                {storeProducts.length === 0 && <p style={{ color: 'var(--text-muted)' }}>{t.noResults}</p>}
                 {storeProducts.map(product => (
-                  <div key={product.id} style={{ background: '#0a0a0a', border: '1px solid #262626', borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <div key={product.id} style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: 120 }}>
-                      <div style={{ fontWeight: 700, color: '#fff', fontSize: 16 }}>{product.name}</div>
-                      <div style={{ color: '#ffffff', fontSize: 12, marginTop: 2 }}>ETB {Number(product.price).toLocaleString()} · {product.category} · Stock: {product.stock_quantity}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--secondary)', fontSize: 16 }}>{product.name}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>ETB {Number(product.price).toLocaleString()} · {product.category} · Stock: {product.stock_quantity}</div>
                     </div>
                     {product.status === 'removed' && (
-                      <div style={{ background: '#ef444415', border: '1px solid #ef444440', color: '#ef4444', padding: '4px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+                      <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#ef4444', padding: '4px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
                         {t.removedByAdmin}: {product.removal_reason}
                       </div>
                     )}
                     {product.status !== 'removed' && (
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => { setEditingProduct(product); setProductForm({ name: product.name, description: product.description || '', price: product.price, category: product.category, stock_quantity: product.stock_quantity }); setShowProductForm(true); setProductFormError(''); }}
-                          style={{ padding: '6px 14px', background: '#f9731620', color: '#f97316', border: '1px solid #f9731640', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}>
+                          style={{ padding: '6px 14px', background: 'rgba(255,122,0,0.08)', color: 'var(--primary)', border: '1px solid rgba(255,122,0,0.15)', borderRadius: 8, fontSize: 14, cursor: 'pointer' }}>
                           {t.editProduct}
                         </button>
                         <button onClick={() => handleDeleteProduct(product.id)}
-                          style={{ padding: '6px 14px', background: '#ef444415', color: '#ef4444', border: '1px solid #ef444440', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}>
+                          style={{ padding: '6px 14px', background: 'rgba(239,68,68,0.06)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.12)', borderRadius: 8, fontSize: 14, cursor: 'pointer' }}>
                           {t.deleteProduct}
                         </button>
                       </div>
@@ -373,35 +447,35 @@ export default function UserDashboard() {
 
         {tab === 'orders' && profile.status === 'active' && (
           <div>
-            <h3 style={{ color: '#f97316', fontSize: 15, marginBottom: 20 }}>{t.myOrdersTab}</h3>
-            {ordersLoading ? <p style={{ color: '#ffffff' }}>{t.loading}</p> : (
+            <h3 style={{ color: 'var(--primary)', fontSize: 15, marginBottom: 20 }}>{t.myOrdersTab}</h3>
+            {ordersLoading ? <p style={{ color: 'var(--text-muted)' }}>{t.loading}</p> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {sellerOrders.length === 0 && <p style={{ color: '#ffffff' }}>{t.noOrders}</p>}
+                {sellerOrders.length === 0 && <p style={{ color: 'var(--text-muted)' }}>{t.noOrders}</p>}
                 {sellerOrders.map(order => (
-                  <div key={order.id} style={{ background: '#0a0a0a', border: '1px solid #262626', borderRadius: 12, padding: '16px' }}>
+                  <div key={order.id} style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 12, padding: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
                       <div>
-                        <span style={{ fontWeight: 700, color: '#fff' }}>{t.orderNumber}{order.id}</span>
-                        <span style={{ color: '#ffffff', fontSize: 15, marginLeft: 12 }}>{order.customer_name}</span>
+                        <span style={{ fontWeight: 700, color: 'var(--secondary)' }}>{t.orderNumber}{order.id}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: 15, marginLeft: 12 }}>{order.customer_name}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ color: '#f97316', fontWeight: 700 }}>ETB {Number(order.total_amount).toLocaleString()}</span>
-                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, background: order.status === 'pending' ? '#f9731620' : order.status === 'confirmed' ? '#22c55e20' : '#ef444420', color: order.status === 'pending' ? '#f97316' : order.status === 'confirmed' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>ETB {Number(order.total_amount).toLocaleString()}</span>
+                        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, background: order.status === 'pending' ? 'rgba(249,115,22,0.1)' : order.status === 'confirmed' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: order.status === 'pending' ? '#f97316' : order.status === 'confirmed' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
                           {order.status}
                         </span>
                       </div>
                     </div>
-                    <div style={{ color: '#ffffff', fontSize: 15, marginBottom: 10 }}>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 10 }}>
                       {t.bank}: {order.payment_method?.toUpperCase()} · {t.proof}: {order.proof_type === 'screenshot' ? `📷 ${t.screenshot}` : `${t.ref}: ${order.proof_value}`}
                     </div>
                     {order.status === 'pending' && (
                       <div style={{ display: 'flex', gap: 10 }}>
                         <button onClick={() => handleConfirmOrder(order.id)}
-                          style={{ padding: '8px 16px', background: '#22c55e', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+                          style={{ padding: '8px 16px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
                           {t.confirmPayment}
                         </button>
                         <button onClick={() => handleRejectOrder(order.id)}
-                          style={{ padding: '8px 16px', background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}>
+                          style={{ padding: '8px 16px', background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}>
                           {t.rejectPayment}
                         </button>
                       </div>
@@ -415,22 +489,22 @@ export default function UserDashboard() {
 
         {tab === 'purchases' && (
           <div>
-            <h3 style={{ color: '#f97316', fontSize: 15, marginBottom: 20 }}>{t.myPurchasesTab}</h3>
-            {purchasesLoading ? <p style={{ color: '#ffffff' }}>{t.loading}</p> : (
+            <h3 style={{ color: 'var(--primary)', fontSize: 15, marginBottom: 20 }}>{t.myPurchasesTab}</h3>
+            {purchasesLoading ? <p style={{ color: 'var(--text-muted)' }}>{t.loading}</p> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {purchases.length === 0 && <p style={{ color: '#ffffff' }}>{t.noOrders}</p>}
+                {purchases.length === 0 && <p style={{ color: 'var(--text-muted)' }}>{t.noOrders}</p>}
                 {purchases.map(order => (
-                  <div key={order.id} style={{ background: '#0a0a0a', border: '1px solid #262626', borderRadius: 12, padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                  <div key={order.id} style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 12, padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
                     <div>
-                      <div style={{ fontWeight: 700, color: '#fff' }}>{t.orderNumber}{order.id}</div>
-                      <div style={{ color: '#ffffff', fontSize: 15, marginTop: 2 }}>{order.seller_name} · ETB {Number(order.total_amount).toLocaleString()}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--secondary)' }}>{t.orderNumber}{order.id}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 15, marginTop: 2 }}>{order.seller_name} · ETB {Number(order.total_amount).toLocaleString()}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, background: order.status === 'pending' ? '#f9731620' : order.status === 'confirmed' ? '#22c55e20' : '#ef444420', color: order.status === 'pending' ? '#f97316' : order.status === 'confirmed' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                      <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, background: order.status === 'pending' ? 'rgba(249,115,22,0.1)' : order.status === 'confirmed' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: order.status === 'pending' ? '#f97316' : order.status === 'confirmed' ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
                         {order.status}
                       </span>
                       {order.status === 'confirmed' && (
-                        <a href="/bazaar/delivery" style={{ color: '#f97316', fontSize: 15, textDecoration: 'none', borderBottom: '1px solid #f9731640' }}>
+                        <a href="/bazaar/delivery" style={{ color: 'var(--primary)', fontSize: 15, textDecoration: 'none', borderBottom: '1px solid rgba(255,122,0,0.2)' }}>
                           {t.requestDelivery}
                         </a>
                       )}
@@ -454,10 +528,10 @@ const Field = ({ label, name, type = 'text', value, onChange, placeholder }) => 
 );
 
 const SaveBtn = ({ saving, label = 'Save Changes' }) => (
-  <button type="submit" disabled={saving} style={{ padding: '12px 28px', background: '#f97316', color: '#000', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+  <button type="submit" disabled={saving} style={{ padding: '12px 28px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
     {saving ? 'Saving...' : label}
   </button>
 );
 
-const inputStyle = { width: '100%', padding: '11px 14px', background: '#0a0a0a', border: '1px solid #333', borderRadius: 8, color: '#fff', fontSize: 16 };
-const labelStyle = { display: 'block', fontSize: 15, color: '#ffffff', marginBottom: 6 };
+const inputStyle = { width: '100%', padding: '11px 14px', background: '#fff', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 8, color: 'var(--text-main)', fontSize: 16 };
+const labelStyle = { display: 'block', fontSize: 15, color: 'var(--text-muted)', marginBottom: 6 };

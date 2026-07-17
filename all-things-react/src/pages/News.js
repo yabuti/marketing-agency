@@ -30,7 +30,7 @@ function ImageSlider({ images }) {
   if (!images.length) return null;
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '24px 24px 0 0', aspectRatio: '16/10' }}>
+    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '24px 24px 0 0', height: 200 }}>
       {images.map((img, i) => (
         <img
           key={img.id}
