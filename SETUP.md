@@ -1,83 +1,90 @@
-# All Things - Setup Guide
+# All Things Platform - Setup & Operations Guide
 
-## 1. Database (XAMPP)
+## 1. Database Installation (XAMPP / Plesk)
 
-1. Open **phpMyAdmin** → `http://localhost/phpmyadmin`
-2. Click **Import** → choose `database/allthings_db.sql` → click **Go**
-3. Database `allthings_db` will be created with all tables
+### Using XAMPP
+1. Start **Apache** and **MySQL** in XAMPP Control Panel.
+2. Open phpMyAdmin at `http://localhost/phpmyadmin`.
+3. Create a database named `allthings_db`.
+4. Click **Import** and select `database/production_full_install.sql`.
+5. Click **Go** to generate all tables and baseline configurations.
 
-Default admin login:
-- Email: `admin@allthings.com`
-- Password: `Admin@123`
+### Using Plesk
+1. Log into your Plesk Panel.
+2. Navigate to **Databases** → **Add Database**.
+3. Create database `allthings_db` and a database user.
+4. Open **phpMyAdmin** for that database and import `database/production_full_install.sql`.
 
 ---
 
-## 2. Backend API
+## 2. Environment Configuration
 
-```bash
-cd backend
-cp .env.example .env        # edit DB_PASSWORD if you set one in XAMPP
-npm install
-npm start                   # runs on http://localhost:5000
+Create your `backend/.env` file:
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=allthings_db
+DB_USER=root
+DB_PASSWORD=
+
+JWT_SECRET=your_secure_32_character_random_jwt_secret
+
+APP_URL=http://localhost:5000
+FRONTEND_URL=http://localhost:3000
+
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=allthingsethiopia2026@gmail.com
+MAIL_PASS=your_16_char_gmail_app_password
+NOTIFY_EMAIL=allthingsethiopia2026@gmail.com
 ```
 
-Test it: open `http://localhost:5000/api/health`
-
-### Email Setup (Gmail)
-1. Go to your Google Account → Security → 2-Step Verification → App Passwords
-2. Create an App Password for "Mail"
-3. In `backend/.env`, set:
-   ```
-   MAIL_USER=allthingsethiopia2026@gmail.com
-   MAIL_PASS=xxxx xxxx xxxx xxxx   ← your 16-char app password
-   NOTIFY_EMAIL=allthingsethiopia2026@gmail.com
-   ```
-4. Restart the backend — emails will now send on every contact form and registration
-
 ---
 
-## 3. Admin Panel
+## 3. Development Workflow
 
+### Run Everything Together
 ```bash
-cd admin-panel
-npm install
-npm start                   # opens http://localhost:3000
+npm start
 ```
+Starts:
+- **Backend API**: `http://localhost:5000`
+- **Frontend App**: `http://localhost:3000`
+- **Admin Console**: `http://localhost:3001`
 
-Login with the admin credentials above.
+### Run Services Individually
+- Backend: `npm run dev:backend`
+- Frontend: `npm run dev:frontend`
+- Admin: `npm run dev:admin`
 
 ---
 
-## 4. Flutter App
+## 4. Production Build for Plesk
 
-The app connects to `http://10.0.2.2:5000/api` (Android emulator).
-
-- For **iOS simulator**: change `baseUrl` in `lib/services/api_service.dart` to `http://localhost:5000/api`
-- For **real device**: use your computer's local IP, e.g. `http://192.168.1.100:5000/api`
-
+Run the unified build command from the root:
 ```bash
-cd all_things_app
+npm run build
+```
+This automatically:
+1. Runs production builds for `frontend` and `admin`.
+2. Assembles all compiled assets and the backend API into `httpdocs/`.
+3. Prepares the universal router (`httpdocs/index.php`) so that:
+   - `/api/*` routes to the PHP backend.
+   - `/admin/*` routes to the Admin Single Page App.
+   - All other routes serve the main React website.
+   - Static files (images, JS, CSS) are served directly with cache headers.
+
+---
+
+## 5. Flutter Mobile App (all_things_app)
+
+To run the Flutter mobile application:
+```bash
+cd mobile
 flutter pub get
 flutter run
 ```
-
----
-
-## How It Works
-
-1. Admin logs into the admin panel
-2. Admin adds clients (info + uploads images/videos)
-3. Admin adds news articles (with images, multilingual)
-4. Admin sees all contact form submissions
-5. Flutter app and website fetch live data from the API
-6. Any change in admin panel appears instantly in the app
-
-## API Endpoints (public)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/clients | All active clients |
-| GET | /api/clients/:id | Single client |
-| GET | /api/news | All published news |
-| GET | /api/news/:id | Single news article |
-| POST | /api/contact | Submit contact form |
+Configure `lib/services/api_service.dart` with your API host:
+- **Android Emulator**: `http://10.0.2.2:5000/api`
+- **iOS Simulator**: `http://localhost:5000/api`
+- **Production Server**: `https://yourdomain.com/api`

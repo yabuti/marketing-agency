@@ -1,0 +1,33 @@
+{
+  "name": "all-things-agency",
+  "version": "2.0.0",
+  "private": true,
+  "description": "All Things Marketing Agency - Unified Full-Stack Platform",
+  "workspaces": [
+    "frontend",
+    "admin"
+  ],
+  "scripts": {
+    "start": "node scripts/dev.js",
+    "dev": "node scripts/dev.js",
+    "dev:frontend": "npm start --prefix frontend",
+    "dev:admin": "npm start --prefix admin",
+    "dev:backend": "php -S localhost:5000 -t backend",
+    "build": "node scripts/build.js",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:admin": "npm run build --prefix admin",
+    "build:all": "node scripts/build.js",
+    "deploy:plesk": "node scripts/deploy-plesk.js",
+    "install:all": "npm install --prefix frontend && npm install --prefix admin"
+  },
+  "keywords": [
+    "marketing",
+    "agency",
+    "bazaar",
+    "react",
+    "php",
+    "monorepo"
+  ],
+  "author": "All Things",
+  "license": "MIT"
+}

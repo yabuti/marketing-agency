@@ -1,27 +1,46 @@
+# Logs
 *.log
-.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Credentials
 .env
+.env*.local
 .env.backup
 .env.production
-.phpactor.json
+**/.env
+auth.json
+
+# Dependencies at any depth
+**/node_modules/
+**/vendor/
+**/.dart_tool/
+**/.gradle/
+
+# Build caches & temp
+.fleet/
+.idea/
+.nova/
+.phpunit.cache
 .phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-/node_modules
-/public/build
-/public/hot
-/public/storage
+.vscode/
+.zed/
+.DS_Store
+Thumbs.db
 /storage/*.key
 /storage/pail
-/vendor
-Homestead.json
-Homestead.yaml
-Thumbs.db
-backend/.env 
-node_modules/ 
-*/node_modules/ 
+
+# React & Flutter builds
+frontend/build/
+admin/build/
+**/build/
+**/dist/
+
+# Mobile builds
+**/.expo/
+mobile/android/app/build/
+mobile/ios/build/
+
+# Archived legacy code
+archive/

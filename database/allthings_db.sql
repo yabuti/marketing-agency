@@ -1,13 +1,6 @@
 -- ============================================================
 -- All Things Marketing Agency - Database
--- Import this file in phpMyAdmin (XAMPP)
 -- ============================================================
-
-CREATE DATABASE IF NOT EXISTS `allthings_db`
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE `allthings_db`;
 
 -- ───────────────────────────────────────────
 -- Table: admins
@@ -35,12 +28,19 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `icon`                   VARCHAR(10)  DEFAULT '🏢',
   `description`            TEXT,
   `full_description`       TEXT,
+  `description_am`         TEXT DEFAULT '',
+  `description_or`         TEXT DEFAULT '',
+  `full_description_am`    TEXT DEFAULT '',
+  `full_description_or`    TEXT DEFAULT '',
+  `category_am`            VARCHAR(200) DEFAULT '',
+  `category_or`            VARCHAR(200) DEFAULT '',
   `established`            VARCHAR(20),
   `location`               VARCHAR(200),
   `license_number`         VARCHAR(100),
   `phone`                  VARCHAR(50),
   `tin_number`             VARCHAR(100),
   `business_license_number` VARCHAR(100),
+  `elmis_registration`     VARCHAR(100),
   `website`                VARCHAR(255),
   `followers`              VARCHAR(30)  DEFAULT '0',
   `growth`                 VARCHAR(30)  DEFAULT '0%',
@@ -49,15 +49,6 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `created_at`             TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   `updated_at`             TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Add translation columns to clients table
-ALTER TABLE `clients`
-  ADD COLUMN IF NOT EXISTS `description_am`      TEXT DEFAULT '',
-  ADD COLUMN IF NOT EXISTS `description_or`      TEXT DEFAULT '',
-  ADD COLUMN IF NOT EXISTS `full_description_am` TEXT DEFAULT '',
-  ADD COLUMN IF NOT EXISTS `full_description_or` TEXT DEFAULT '',
-  ADD COLUMN IF NOT EXISTS `category_am`         VARCHAR(200) DEFAULT '',
-  ADD COLUMN IF NOT EXISTS `category_or`         VARCHAR(200) DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS `client_media` (
   `id`          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -221,15 +212,19 @@ CREATE TABLE IF NOT EXISTS `client_path_media` (
 -- Table: team_members
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `team_members` (
-  `id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `full_name`    VARCHAR(200) NOT NULL DEFAULT 'Abebe Kebede',
-  `position`     VARCHAR(300) NOT NULL,
-  `department`   VARCHAR(100) NOT NULL,
-  `responsibilities` TEXT,
-  `photo_path`   VARCHAR(500) DEFAULT NULL,
-  `sort_order`   INT DEFAULT 0,
-  `is_active`    TINYINT(1) DEFAULT 1,
-  `created_at`   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `id`                   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `full_name`            VARCHAR(200) NOT NULL DEFAULT 'Abebe Kebede',
+  `position`             VARCHAR(300) NOT NULL,
+  `position_am`          VARCHAR(300) DEFAULT '',
+  `position_or`          VARCHAR(300) DEFAULT '',
+  `department`           VARCHAR(100) NOT NULL,
+  `responsibilities`     TEXT,
+  `responsibilities_am`  TEXT,
+  `responsibilities_or`  TEXT,
+  `photo_path`           VARCHAR(500) DEFAULT NULL,
+  `sort_order`           INT DEFAULT 0,
+  `is_active`            TINYINT(1) DEFAULT 1,
+  `created_at`           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Default team members

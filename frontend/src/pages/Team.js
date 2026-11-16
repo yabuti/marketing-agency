@@ -1,0 +1,266 @@
+import React, { useEffect, useState } from 'react';
+import API from '../api';
+import { useLang } from '../LangContext';
+import Pagination from '../components/Pagination';
+
+const DEPT_ORDER = [
+  'Executive Management',
+  'Creative & Digital Marketing',
+  'Technology & Platform Support',
+  'Finance & Administration',
+  'Customer & Sales',
+];
+
+const DEPT_ICONS = {
+  'Executive Management': '👔',
+  'Creative & Digital Marketing': '🎨',
+  'Technology & Platform Support': '💻',
+  'Finance & Administration': '📊',
+  'Customer & Sales': '🤝',
+};
+
+export default function Team() {
+  const { t, lang } = useLang();
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 12;
+
+  useEffect(() => {
+    API.get(`/team?lang=${lang}`).then(r => setMembers(Array.isArray(r.data) ? r.data : [])).catch(() => setMembers([])).finally(() => setLoading(false));
+  }, [lang]);
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>{t.loading}</div>;
+
+  const grouped = {};
+  members.forEach(m => {
+    const key = m.department || '';
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(m);
+  });
+
+  const depts = DEPT_ORDER.filter(d => grouped[d]);
+
+  const flatMembers = [];
+  depts.forEach(dept => {
+    grouped[dept].forEach((member, i) => {
+      if (dept === 'Technology & Platform Support' && i === 1) return;
+      if (dept === 'Customer & Sales' && i === 1) return;
+      flatMembers.push(member);
+    });
+  });
+  (grouped[''] || []).forEach(m => flatMembers.push(m));
+
+  const totalPages = Math.ceil(flatMembers.length / PER_PAGE);
+  const paginated = flatMembers.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  return (
+    <div className="page" style={{ paddingTop: 100 }}>
+      <div className="hero-gradient" style={{ height: '40vh' }} />
+      {/* Profile Modal */}
+      {selectedMember && (
+        <div
+          onClick={() => setSelectedMember(null)}
+          className="team-modal"
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, padding: 24,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="team-modal-card"
+            style={{
+              background: 'var(--bg-main)',
+              borderRadius: 28,
+              padding: 40,
+              maxWidth: 480,
+              width: '100%',
+              boxShadow: '0 40px 80px rgba(0,0,0,0.2)',
+              position: 'relative',
+              textAlign: 'center',
+            }}
+          >
+            {/* Close */}
+            <button
+              onClick={() => setSelectedMember(null)}
+              style={{
+                position: 'absolute', top: 16, right: 16,
+                background: 'rgba(0,0,0,0.06)', border: 'none',
+                borderRadius: '50%', width: 36, height: 36,
+                fontSize: 16, cursor: 'pointer', color: 'var(--text-muted)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >✕</button>
+
+            {/* Department badge */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(255, 122, 0, 0.08)', color: 'var(--primary)',
+              padding: '6px 14px', borderRadius: 100,
+              fontSize: 17, fontWeight: 800, textTransform: 'uppercase',
+              letterSpacing: '0.08em', marginBottom: 24,
+            }}>
+              {DEPT_ICONS[selectedMember.department] || '👥'} {selectedMember.department}
+            </div>
+
+            {/* Photo */}
+            <div style={{
+              width: 120, height: 120, borderRadius: '50%',
+              margin: '0 auto 20px', overflow: 'hidden',
+              background: 'var(--bg-subtle)',
+              border: '4px solid rgba(255, 122, 0, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {selectedMember.photo_url ? (
+                <img src={selectedMember.photo_url} alt={selectedMember.full_name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontSize: 48, color: '#ccc' }}>👤</span>
+              )}
+            </div>
+
+            {/* Name */}
+            <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6, color: 'var(--secondary)' }}>
+              {selectedMember.full_name}
+            </h2>
+
+            {/* Position */}
+            <div style={{ color: 'var(--primary)', fontSize: 17, fontWeight: 700, marginBottom: 20 }}>
+              {selectedMember.position}
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', marginBottom: 20 }} />
+
+            {/* Responsibilities */}
+            {selectedMember.responsibilities && (
+              <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7, textAlign: 'left' }}>
+                {selectedMember.responsibilities}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <h1 style={{ fontSize: 'clamp(22px, 3.5vw, 30px)', fontWeight: 900, margin: '0 0 16px' }}>
+          {t.teamTitle} <span style={{ color: 'var(--primary)' }}>{t.teamTitleHighlight}</span>
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: 16, maxWidth: 520, margin: '0 auto' }}>
+          {t.teamSubtitle}
+        </p>
+      </div>
+
+      {/* Team grid */}
+      <div className="dept-members">
+        {paginated.map(member => (
+          <MemberCard key={member.id} member={member} onViewProfile={() => setSelectedMember(member)} />
+        ))}
+      </div>
+
+      {flatMembers.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>{t.teamEmpty}</div>
+      )}
+
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={p => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+
+      <style>{`
+        @media (max-width: 768px) {
+          .team-modal { padding: 16px !important; align-items: flex-start !important; overflow-y: auto; }
+          .team-modal-card { padding: 28px 20px !important; border-radius: 22px !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function MemberCard({ member, onViewProfile }) {
+  const { t } = useLang();
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--bg-subtle)',
+        border: `2px solid ${hovered ? 'rgba(255,122,0,0.3)' : 'rgba(30,41,59,0.1)'}`,
+        borderRadius: 40,
+        padding: '28px 24px 24px',
+        paddingTop: 72,
+        textAlign: 'center',
+        position: 'relative',
+        boxShadow: hovered ? '0 20px 40px -10px rgba(255,122,0,0.12)' : '0 4px 20px rgba(0,0,0,0.04)',
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        transform: hovered ? 'translateY(-4px)' : 'none',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+      }}
+    >
+      {/* Photo - overlapping circle */}
+      <div style={{
+        position: 'absolute', top: -40, left: '50%',
+        transform: 'translateX(-50%)',
+        width: 100, height: 100, borderRadius: '50%',
+        overflow: 'hidden',
+        background: 'var(--bg-subtle)',
+        border: '6px solid var(--bg-subtle)',
+        boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {member.photo_url ? (
+          <img src={member.photo_url} alt={member.full_name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+        ) : null}
+        <span style={{ fontSize: 40, color: '#ccc', display: member.photo_url ? 'none' : 'flex' }}>👤</span>
+      </div>
+
+      {/* Name */}
+      <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 6, color: 'var(--secondary)' }}>
+        {member.full_name}
+      </div>
+
+      {/* Position */}
+      <div style={{ color: 'var(--primary)', fontSize: 17, fontWeight: 700, marginBottom: 12, lineHeight: 1.4 }}>
+        {member.position}
+      </div>
+
+      {/* Responsibilities */}
+      {member.responsibilities && (
+        <div style={{
+          color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.6,
+          display: '-webkit-box', WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          marginBottom: 16,
+        }}>
+          {member.responsibilities}
+        </div>
+      )}
+
+      {/* View Profile button */}
+      <button
+        onClick={onViewProfile}
+        style={{
+          marginTop: 'auto',
+          padding: '9px 24px',
+          background: hovered ? 'var(--primary)' : 'rgba(255,122,0,0.06)',
+          color: hovered ? '#fff' : 'var(--primary)',
+          border: '1.5px solid rgba(255,122,0,0.2)',
+          borderRadius: 100,
+          fontWeight: 700, fontSize: 17,
+          cursor: 'pointer',
+          transition: 'all 0.25s',
+          width: '100%',
+        }}
+      >
+        {t.viewProfile}
+      </button>
+    </div>
+  );
+}

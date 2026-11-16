@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "All Things Ethiopia",
+    "slug": "all-things-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/android-icon-foreground.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.allthingsethiopia.app",
+      "usesCleartextTraffic": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.allthingsethiopia.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "734a4f58-f0f9-439c-afab-ca8ec3add856"
+      }
+    }
+  }
+}

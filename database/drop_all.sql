@@ -1,0 +1,15 @@
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `user_submissions`;
+DROP TABLE IF EXISTS `user_profiles`;
+DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `client_path_media`;
+DROP TABLE IF EXISTS `client_promotion_paths`;
+DROP TABLE IF EXISTS `client_media`;
+DROP TABLE IF EXISTS `clients`;
+DROP TABLE IF EXISTS `news_images`;
+DROP TABLE IF EXISTS `news`;
+DROP TABLE IF EXISTS `ads`;
+DROP TABLE IF EXISTS `contact_submissions`;
+DROP TABLE IF EXISTS `team_members`;
+DROP TABLE IF EXISTS `admins`;
+SET FOREIGN_KEY_CHECKS = 1;
